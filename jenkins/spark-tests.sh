@@ -781,6 +781,9 @@ if [[ "$TEST_MODE" == "CUDF_UDF_ONLY" ]]; then
   # Create a separate conda env for cudf-udf tests to avoid affecting the base env (python 3.10)
   CUDF_UDF_ENV="cudf_udf_$(date +"%Y%m%d")"
   CUDF_UDF_PYTHON_VER="3.12"  # since 26.04, python 3.12+ is required for cudf-py
+  # Snapshot coordinates can have a different version from the bundled cuDF runtime.
+  CUDF_VER=${CUDF_VER:-$(unzip -p "$RAPIDS_PLUGIN_JAR" rapids4spark-version-info.properties |
+    sed -n 's/^cudf_version=\([0-9]*\.[0-9]*\).*$/\1/p')}
   CUDF_VER=${CUDF_VER:-$(echo "${PROJECT_VER}" | cut -d '.' -f 1,2)}
   CUDA_VER_FOR_CUDF=${CUDA_VER_FOR_CUDF:-'12.9'}
 
