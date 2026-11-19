@@ -27,7 +27,7 @@
 #   SIGN_TOOL:      Tool to sign files, e.g., gpg, nvsec, only required when $1 is 'true'
 #   GPG_PASSPHRASE: gpg passphrase to sign artifacts, only required when <SIGN_TOOL> is gpg
 #   MVN_SETTINGS:   Maven configuration file
-#   PARENT_POM:     Comma-separated parent pom files to be deployed
+#   PARENT_POM:     Comma-separated POM paths to deploy (default: parent POM and relocation POMs for parent and dist)
 #   POM_FILE:       Project pom file to be deployed
 #   OUT_PATH:       The path where jar files are
 #   CUDA_CLASSIFIERS:    Comma separated classifiers, e.g., "cuda12"
@@ -108,8 +108,8 @@ fi
 DEPLOY_CMD="$DEPLOY_CMD -Durl=$SERVER_URL -DrepositoryId=$SERVER_ID"
 echo "Deploy CMD: $DEPLOY_CMD"
 
-###### Deploy the parent pom file(s) ######
-PARENT_POM=${PARENT_POM:-"./pom.xml"}
+###### Deploy the parent POM and relocation POMs (parent and dist) ######
+PARENT_POM=${PARENT_POM:-"./pom.xml,relocation/parent/pom.xml,relocation/dist/pom.xml"}
 IFS=',' read -ra parent_arr <<< "$PARENT_POM"
 for parent in "${parent_arr[@]}"; do
     $DEPLOY_CMD -Dfile="$parent" -DpomFile="$parent"

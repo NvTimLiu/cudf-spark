@@ -246,8 +246,8 @@ installDistArtifact ${DEFAULT_CUDA_CLASSIFIER}
 distWithReducedPom "install"
 
 if [[ $SKIP_DEPLOY != 'true' ]]; then
-    # this deploys selected submodules that is unconditionally built with default Spark shim
-    $MVN -B deploy -pl "!${DIST_PL}" \
+    # deploy.sh publishes the distribution and its compatibility POMs together below.
+    $MVN -B deploy -pl "!${DIST_PL},!relocation/dist,!relocation/parent" \
         -Dbuildver=$SPARK_BASE_SHIM_VERSION \
         -DskipTests -Drat.skip=true \
         -Dmaven.scaladoc.skip -Dmaven.scalastyle.skip=true \
