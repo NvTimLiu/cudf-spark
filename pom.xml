@@ -65,6 +65,8 @@
         <module>aggregator</module>
         <module>datagen</module>
         <module>dist</module>
+        <module>relocation/dist</module>
+        <module>relocation/parent</module>
         <module>integration_tests</module>
         <module>shuffle-plugin</module>
         <module>iceberg-common</module>

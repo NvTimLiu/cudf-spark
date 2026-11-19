@@ -27,7 +27,7 @@
 #   SIGN_TOOL:      Tool to sign files, e.g., gpg, nvsec, only required when $1 is 'true'
 #   GPG_PASSPHRASE: gpg passphrase to sign artifacts, only required when <SIGN_TOOL> is gpg
 #   MVN_SETTINGS:   Maven configuration file
-#   PARENT_POM:     Comma-separated parent pom files to be deployed
+#   PARENT_POM:     Override the default parent and compatibility POMs with a comma-separated list
 #   POM_FILE:       Project pom file to be deployed
 #   OUT_PATH:       The path where jar files are
 #   CUDA_CLASSIFIERS:    Comma separated classifiers, e.g., "cuda12"
@@ -71,19 +71,22 @@ FPATH="$OUT_PATH/$ART_ID-$ART_VER"
 DEPLOY_TYPES=''
 DEPLOY_FILES=''
 DEPLOY_TYPES=$(echo $CLASSIFIERS | sed -e 's;[^,]*;jar;g')
-DEPLOY_FILES=$(echo $CLASSIFIERS | sed -e "s;\([^,]*\);${FPATH}-\1.jar;g")
 
 # dist does not have javadoc and sources jars, use 'sql-plugin' instead
 SQL_ART_ID=$(mvnEval $SQL_PL project.artifactId)
 SQL_ART_VER=$(mvnEval $SQL_PL project.version)
 JS_FPATH="$(echo -n ${SQL_PL}/target/spark*)/${SQL_ART_ID}-${SQL_ART_VER}"
 if [ $SCALA_BINARY_VER == "2.13" ]; then
+    # deploy-file resolves its comma-separated files from the working directory even with -f.
+    classifier_prefix="$PWD/scala2.13/$FPATH"
     cp scala2.13/$JS_FPATH-sources.jar scala2.13/$FPATH-sources.jar
     cp scala2.13/$JS_FPATH-javadoc.jar scala2.13/$FPATH-javadoc.jar
 else
+    classifier_prefix="$FPATH"
     cp $JS_FPATH-sources.jar $FPATH-sources.jar
     cp $JS_FPATH-javadoc.jar $FPATH-javadoc.jar
 fi
+DEPLOY_FILES=$(echo $CLASSIFIERS | sed -e "s;\([^,]*\);${classifier_prefix}-\1.jar;g")
 echo "Plan to deploy ${FPATH}.jar to $SERVER_URL (ID:$SERVER_ID)"
 
 GPG_PLUGIN="org.apache.maven.plugins:maven-gpg-plugin:3.1.0:sign-and-deploy-file"
@@ -108,11 +111,14 @@ fi
 DEPLOY_CMD="$DEPLOY_CMD -Durl=$SERVER_URL -DrepositoryId=$SERVER_ID"
 echo "Deploy CMD: $DEPLOY_CMD"
 
-###### Deploy the parent pom file(s) ######
-PARENT_POM=${PARENT_POM:-"./pom.xml"}
-IFS=',' read -ra parent_arr <<< "$PARENT_POM"
-for parent in "${parent_arr[@]}"; do
-    $DEPLOY_CMD -Dfile="$parent" -DpomFile="$parent"
+###### Deploy the distribution's standalone POMs ######
+if [[ -n ${PARENT_POM:-} ]]; then
+    IFS=',' read -ra poms <<< "$PARENT_POM"
+else
+    poms=(pom.xml relocation/parent/pom.xml relocation/dist/pom.xml)
+fi
+for pom in "${poms[@]}"; do
+    $DEPLOY_CMD -Dfile="$pom" -DpomFile="$pom"
 done
 
 ###### Deploy the artifact jar(s) ######
