@@ -19,7 +19,7 @@ import sys
 def main():
   workspace = 'https://dbc-9ff9942e-a9c4.cloud.databricks.com'
   token = ''
-  clusterid = '0617-140138-umiak14'
+  clusterid = ''
   delete = False
 
   try:

@@ -105,7 +105,7 @@ class ClusterUtils(object):
     @staticmethod
     def terminate_cluster(workspace, clusterid, token, printLoc=sys.stdout):
         jsonout = ClusterUtils.cluster_state(workspace, clusterid, token, printLoc=printLoc)
-        if not ClusterUtils.is_cluster_unning(jsonout):
+        if not ClusterUtils.is_cluster_running(jsonout):
             print("Cluster is not running", file=printLoc)
             sys.exit(1)
 
